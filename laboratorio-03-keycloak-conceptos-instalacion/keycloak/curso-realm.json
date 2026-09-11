@@ -1,0 +1,22 @@
+{
+  "realm": "curso",
+  "displayName": "Cooperativa Andina · Curso Keycloak",
+  "enabled": true,
+  "users": [
+    {
+      "username": "ana",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Ana",
+      "lastName": "Torres",
+      "email": "ana.torres@ejemplo.test",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ana123",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

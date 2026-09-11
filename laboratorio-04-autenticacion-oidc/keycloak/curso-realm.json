@@ -1,0 +1,41 @@
+{
+  "realm": "curso",
+  "displayName": "Cooperativa Andina · Curso Keycloak",
+  "enabled": true,
+  "users": [
+    {
+      "username": "ana",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Ana",
+      "lastName": "Torres",
+      "email": "ana.torres@ejemplo.test",
+      "credentials": [
+        { "type": "password", "value": "ana123", "temporary": false }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "aplicacion-base",
+      "name": "Aplicación base del curso",
+      "description": "Aplicación web Spring Boot (laboratorio 04)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "secreto-lab04-cambialo-en-produccion",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "http://localhost:8081",
+      "baseUrl": "/",
+      "redirectUris": [ "http://localhost:8081/login/oauth2/code/keycloak" ],
+      "webOrigins": [ "http://localhost:8081" ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ]
+}

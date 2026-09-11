@@ -1,0 +1,18 @@
+# Configuración de la aplicación base.
+#
+# Keycloak (start-dev) escucha en el puerto 8080, por lo que la aplicación
+# usa el 8081 para que ambos convivan en la misma máquina virtual WSL.
+
+server:
+  port: 8081
+
+spring:
+  application:
+    name: aplicacion-base
+  thymeleaf:
+    # Desactiva la caché de plantillas para ver cambios sin reiniciar
+    cache: false
+
+# LABORATORIO 04: aquí se añadirá la sección
+#   spring.security.oauth2.client
+# con los datos del cliente registrado en Keycloak.

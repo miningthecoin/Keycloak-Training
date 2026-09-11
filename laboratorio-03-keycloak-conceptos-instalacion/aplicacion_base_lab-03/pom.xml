@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Aplicación base del curso "Desarrollo seguro con Keycloak".
+
+  Punto de partida deliberadamente inseguro: una aplicación web Spring Boot
+  con dos secciones y SIN autenticación ni autorización. A lo largo de los
+  laboratorios se irán añadiendo dependencias y configuración.
+
+  Regla del curso: NO se usan los "Keycloak Client Adapters" (dependencias
+  org.keycloak.*). La documentación oficial indica usar primero el soporte
+  OpenID Connect del propio ecosistema (aquí, Spring Security) y dejar los
+  adaptadores como último recurso.
+  Referencia: https://www.keycloak.org/securing-apps/overview
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Heredamos versiones de dependencias y plugins del starter parent -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.0</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.curso.keycloak</groupId>
+    <artifactId>aplicacion-base</artifactId>
+    <version>0.0.1</version>
+    <name>aplicacion-base</name>
+    <description>Aplicación web mínima para los laboratorios de Keycloak</description>
+
+    <properties>
+        <!-- Ubuntu 24.04 instala OpenJDK 21 con: sudo apt install openjdk-21-jdk -->
+        <java.version>21</java.version>
+    </properties>
+
+    <dependencies>
+        <!-- Servidor web embebido (Tomcat) y Spring MVC -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Motor de plantillas HTML del lado servidor -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!--
+          LABORATORIO 04: aquí se añadirá spring-boot-starter-oauth2-client
+          (soporte OpenID Connect nativo de Spring Security).
+        -->
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Permite ejecutar con: mvn spring-boot:run -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

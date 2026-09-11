@@ -1,0 +1,47 @@
+# Keycloak para el curso.
+#
+# Equivale al comando de la guía oficial "Getting started – Docker"
+# (https://www.keycloak.org/getting-started/getting-started-docker):
+#
+#   docker run -p 127.0.0.1:8080:8080 \
+#     -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin \
+#     quay.io/keycloak/keycloak:26.7.3 start-dev
+#
+# con dos añadidos tomados de la guía "Running Keycloak in a container"
+# (https://www.keycloak.org/server/containers):
+#   1. Un volumen para que la base de datos de desarrollo (H2) sobreviva
+#      a reinicios del contenedor.
+#   2. La carpeta ./import montada en /opt/keycloak/data/import y la opción
+#      --import-realm, para restaurar un realm exportado si lo necesitas.
+#
+# Uso:
+#   cd ~/keycloak-curso/keycloak
+#   docker compose up -d        # arrancar en segundo plano
+#   docker compose logs -f      # ver el log
+#   docker compose down         # parar (los datos se conservan)
+#   docker compose down -v      # parar y BORRAR los datos
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.3
+    container_name: keycloak
+    # start-dev: modo desarrollo. HTTP sin TLS, base de datos H2 embebida,
+    # sin caché de temas. NUNCA para producción (laboratorio 13).
+    command: start-dev --import-realm
+    environment:
+      # Usuario administrador temporal que se crea en el primer arranque.
+      # Solo vale para laboratorio. En el lab 13 se explica cómo
+      # sustituirlo por un administrador permanente.
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      # Solo accesible desde la propia máquina, como recomienda la guía.
+      - "127.0.0.1:8080:8080"
+    volumes:
+      # Persistencia de la base de datos H2 de desarrollo
+      - keycloak_datos:/opt/keycloak/data
+      # Realms a importar en el arranque (solo si aún no existen)
+      - ./import:/opt/keycloak/data/import:ro
+
+volumes:
+  keycloak_datos:

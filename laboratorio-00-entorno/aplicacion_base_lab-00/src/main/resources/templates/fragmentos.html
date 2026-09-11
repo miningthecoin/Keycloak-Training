@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  Fragmentos reutilizables de Thymeleaf.
+  Se incluyen desde publica.html y privada.html con th:replace.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Cabecera común. Muestra la navegación y la identidad del visitante.
+  En la aplicación base "usuario" siempre vale "anónimo".
+  LABORATORIO 04: aquí aparecerá el nombre del usuario autenticado y el
+  botón de cerrar sesión.
+-->
+<header th:fragment="cabecera" class="cabecera">
+    <a class="marca" th:href="@{/}">Cooperativa Andina</a>
+    <nav>
+        <a th:href="@{/}">Portada</a>
+        <a th:href="@{/privada}">Clientes</a>
+    </nav>
+    <span class="identidad">Sesión: <strong th:text="${usuario}">anónimo</strong></span>
+</header>
+
+<!-- Pie común -->
+<footer th:fragment="pie" class="pie">
+    Aplicación base del curso · Desarrollo seguro con Keycloak
+</footer>
+
+</body>
+</html>

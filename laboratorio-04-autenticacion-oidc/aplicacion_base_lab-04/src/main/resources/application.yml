@@ -1,0 +1,47 @@
+# Configuración de la aplicación base.
+#
+# Keycloak (start-dev) escucha en el puerto 8080, por lo que la aplicación
+# usa el 8081 para que ambos convivan en la misma máquina virtual WSL.
+
+server:
+  port: 8081
+
+spring:
+  application:
+    name: aplicacion-base
+  thymeleaf:
+    # Desactiva la caché de plantillas para ver cambios sin reiniciar
+    cache: false
+
+  # ------------------------------------------------------------------
+  # LABORATORIO 04: registro del cliente OpenID Connect.
+  #
+  # "registration" describe a NUESTRA aplicación tal como está dada de
+  # alta en Keycloak. "provider" describe a Keycloak. Spring lee el
+  # documento de descubrimiento (issuer-uri/.well-known/openid-configuration)
+  # y obtiene de él todos los endpoints: no hay que escribir ninguno.
+  # ------------------------------------------------------------------
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            # Debe coincidir con el "Client ID" creado en la Admin Console
+            client-id: aplicacion-base
+            # El secreto NUNCA se escribe en el código ni se sube al repo.
+            # Se lee de la variable de entorno KEYCLOAK_CLIENT_SECRET.
+            client-secret: ${KEYCLOAK_CLIENT_SECRET}
+            # Flujo recomendado para aplicaciones web (RFC 9700 / OAuth 2.1)
+            authorization-grant-type: authorization_code
+            # "openid" convierte OAuth 2.0 en OpenID Connect (habrá ID Token).
+            # "profile" y "email" piden nombre y correo del usuario.
+            scope: openid, profile, email
+            # URL a la que Keycloak devuelve el "code". Spring la espera
+            # exactamente en esta ruta; debe estar en la lista
+            # "Valid redirect URIs" del cliente en Keycloak.
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          keycloak:
+            # Emisor de los tokens. Spring descarga de aquí la
+            # configuración OIDC y las claves públicas (JWKS).
+            issuer-uri: http://localhost:8080/realms/curso

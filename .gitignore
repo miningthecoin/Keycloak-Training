@@ -1,0 +1,18 @@
+# Compilados de Maven
+**/target/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Secretos locales de los alumnos (client secrets, tokens)
+**/*.secreto
+**/.env

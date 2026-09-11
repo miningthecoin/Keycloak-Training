@@ -1,0 +1,83 @@
+/* Estilos mínimos de la aplicación base. No influyen en los laboratorios. */
+
+:root {
+    --tinta: #1f2a30;
+    --fondo: #fbfaf7;
+    --linea: #d9d4c7;
+    --acento: #1d6b5a;
+    --aviso: #fff4d6;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--tinta);
+    background: var(--fondo);
+    line-height: 1.55;
+}
+
+.cabecera {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    padding: 1rem 2rem;
+    border-bottom: 2px solid var(--acento);
+}
+
+.marca {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--acento);
+    text-decoration: none;
+}
+
+.cabecera nav a {
+    margin-right: 1rem;
+    color: var(--tinta);
+}
+
+.identidad {
+    margin-left: auto;
+    font-size: 0.95rem;
+}
+
+main {
+    max-width: 52rem;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+h1 { font-size: 2rem; margin: 0 0 0.5rem; }
+h2 { font-size: 1.2rem; margin: 0 0 0.5rem; }
+
+.aviso {
+    margin-top: 2rem;
+    padding: 1rem 1.25rem;
+    background: var(--aviso);
+    border-left: 4px solid #c9a227;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+th, td {
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--linea);
+}
+
+th { font-weight: normal; color: #5a6168; }
+
+.pie {
+    margin: 3rem 0 1rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #5a6168;
+}
+
+a:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
