@@ -116,7 +116,7 @@ jq --version
 
 ```bash
 cd ~
-git clone <URL-DEL-REPOSITORIO-DEL-CURSO> keycloak-curso
+git clone https://github.com/miningthecoin/Keycloak-Training.git keycloak-curso
 cd keycloak-curso
 ls
 ```
