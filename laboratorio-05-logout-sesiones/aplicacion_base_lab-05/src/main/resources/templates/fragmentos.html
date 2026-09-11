@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+  Fragmentos reutilizables de Thymeleaf.
+  Se incluyen desde publica.html y privada.html con th:replace.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Cabecera común. Muestra la navegación y la identidad del visitante.
+
+  LABORATORIO 04: "usuario" contiene el nombre del usuario autenticado en
+  Keycloak, o "anónimo". Si no hay sesión se ofrece el enlace de inicio.
+  La ruta /oauth2/authorization/keycloak la crea Spring Security: al
+  visitarla, redirige al usuario a la pantalla de login de Keycloak.
+
+  LABORATORIO 05: si hay sesión se muestra el botón "Cerrar sesión".
+  Es un formulario POST a /logout, la ruta que Spring Security crea por
+  defecto. Debe ser POST y no un enlace GET: cerrar sesión cambia estado
+  en el servidor y Spring exige el token CSRF para aceptarlo. Gracias a
+  la integración Thymeleaf + Spring Security, th:action añade solo el
+  campo oculto "_csrf" al formulario (mira el código fuente de la página).
+-->
+<header th:fragment="cabecera" class="cabecera">
+    <a class="marca" th:href="@{/}">Cooperativa Andina</a>
+    <nav>
+        <a th:href="@{/}">Portada</a>
+        <a th:href="@{/privada}">Clientes</a>
+    </nav>
+    <span class="identidad">
+        Sesión: <strong th:text="${usuario}">anónimo</strong>
+        <a th:unless="${autenticado}" th:href="@{/oauth2/authorization/keycloak}">Iniciar sesión</a>
+        <form th:if="${autenticado}" th:action="@{/logout}" method="post" class="salir">
+            <button type="submit">Cerrar sesión</button>
+        </form>
+    </span>
+</header>
+
+<!-- Pie común -->
+<footer th:fragment="pie" class="pie">
+    Aplicación base del curso · Desarrollo seguro con Keycloak
+</footer>
+
+</body>
+</html>

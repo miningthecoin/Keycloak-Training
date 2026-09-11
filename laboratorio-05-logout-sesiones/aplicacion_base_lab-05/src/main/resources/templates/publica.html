@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+  Sección PÚBLICA de la aplicación.
+  Accesible sin autenticación durante todo el curso.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Portada · Cooperativa Andina</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<!-- Inserta la cabecera definida en fragmentos.html -->
+<header th:replace="~{fragmentos :: cabecera}"></header>
+
+<main>
+    <h1>Bienvenido a Cooperativa Andina</h1>
+    <p>
+        Esta portada es información general y puede verla cualquier persona.
+        El enlace <a th:href="@{/privada}">Clientes</a> lleva a la sección con
+        datos de clientes, que debería estar protegida.
+    </p>
+
+    <section class="aviso">
+        <h2>Estado de seguridad de esta versión</h2>
+        <ul>
+            <li>Autenticación de usuarios: OpenID Connect con Keycloak (lab 04)</li>
+            <li>Autorización por rol: ninguna</li>
+            <li>Segundo factor: ninguno</li>
+        </ul>
+        <p>Cada laboratorio del curso corrige una de estas carencias.</p>
+    </section>
+</main>
+
+<footer th:replace="~{fragmentos :: pie}"></footer>
+
+</body>
+</html>

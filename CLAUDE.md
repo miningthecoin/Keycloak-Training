@@ -65,8 +65,15 @@ demostrado con curl) · 12 auditoría de eventos · 13 endurecimiento ·
 ## Estado actual
 
 - Hechos: README raíz, `aplicacion_base`, `keycloak/docker-compose.yml`,
-  labs 00, 03 y 04 completos.
-- Pendientes: labs 01, 02, 05 a 14.
+  labs 00, 03, 04 y 05 completos.
+- Pendientes: labs 01, 02, 06 a 14.
+- Lab 05 (2026-09-10): RP-Initiated Logout con
+  `OidcClientInitiatedLogoutSuccessHandler`, botón "Cerrar sesión" (POST
+  /logout con CSRF), `server.servlet.session.timeout: 3m` alineado con SSO
+  Session Idle = 3 min, SSO Session Max = 1 h, Access Token Lifespan = 1 min
+  (sin efecto visible hasta el lab 11). Verificado con curl contra Keycloak
+  26.7.3: logout real, URI no registrada -> 400, caducidad por inactividad a
+  los 180 s sin ventana extra. Front/back-channel logout quedan fuera de alcance.
 - Verificado el 2026-09-10: `aplicacion_base_lab-04` compila (Spring Boot
   3.5.0, Java 21) y el flujo completo del README del lab 04 (login de `ana`,
   PKCE S256, `redirect_uri` inválida) funciona contra Keycloak 26.7.3 con el

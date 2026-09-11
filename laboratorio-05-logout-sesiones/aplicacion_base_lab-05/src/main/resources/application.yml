@@ -1,0 +1,62 @@
+# Configuración de la aplicación base.
+#
+# Keycloak (start-dev) escucha en el puerto 8080, por lo que la aplicación
+# usa el 8081 para que ambos convivan en la misma máquina virtual WSL.
+
+server:
+  port: 8081
+  servlet:
+    session:
+      # ------------------------------------------------------------
+      # LABORATORIO 05: caducidad por inactividad de la sesión LOCAL.
+      #
+      # La aplicación mantiene su propia sesión HTTP (cookie JSESSIONID),
+      # independiente de la sesión SSO de Keycloak. Spring Boot la caduca
+      # a los 30 minutos por defecto. La igualamos al "SSO Session Idle"
+      # configurado en el realm (3 minutos, valor didáctico) para que
+      # ambas sesiones expiren a la vez y la caducidad se pueda observar
+      # en clase. En producción PCI DSS 8.2.8 exige 15 minutos o menos.
+      # ------------------------------------------------------------
+      timeout: 3m
+
+spring:
+  application:
+    name: aplicacion-base
+  thymeleaf:
+    # Desactiva la caché de plantillas para ver cambios sin reiniciar
+    cache: false
+
+  # ------------------------------------------------------------------
+  # LABORATORIO 04: registro del cliente OpenID Connect.
+  #
+  # "registration" describe a NUESTRA aplicación tal como está dada de
+  # alta en Keycloak. "provider" describe a Keycloak. Spring lee el
+  # documento de descubrimiento (issuer-uri/.well-known/openid-configuration)
+  # y obtiene de él todos los endpoints: no hay que escribir ninguno.
+  # ------------------------------------------------------------------
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            # Debe coincidir con el "Client ID" creado en la Admin Console
+            client-id: aplicacion-base
+            # El secreto NUNCA se escribe en el código ni se sube al repo.
+            # Se lee de la variable de entorno KEYCLOAK_CLIENT_SECRET.
+            client-secret: ${KEYCLOAK_CLIENT_SECRET}
+            # Flujo recomendado para aplicaciones web (RFC 9700 / OAuth 2.1)
+            authorization-grant-type: authorization_code
+            # "openid" convierte OAuth 2.0 en OpenID Connect (habrá ID Token).
+            # "profile" y "email" piden nombre y correo del usuario.
+            scope: openid, profile, email
+            # URL a la que Keycloak devuelve el "code". Spring la espera
+            # exactamente en esta ruta; debe estar en la lista
+            # "Valid redirect URIs" del cliente en Keycloak.
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+        provider:
+          keycloak:
+            # Emisor de los tokens. Spring descarga de aquí la
+            # configuración OIDC y las claves públicas (JWKS).
+            # LABORATORIO 05: del mismo documento sale el
+            # "end_session_endpoint" que usa el cierre de sesión.
+            issuer-uri: http://localhost:8080/realms/curso

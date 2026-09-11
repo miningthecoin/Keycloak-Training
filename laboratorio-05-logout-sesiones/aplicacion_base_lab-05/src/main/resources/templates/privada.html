@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+  Sección PRIVADA de la aplicación.
+  Muestra datos de clientes que, según PCI DSS (req. 7) y OWASP A01,
+  solo deberían ver usuarios autenticados y autorizados.
+
+  En la aplicación base se muestra a cualquiera: esa es la debilidad.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Clientes · Cooperativa Andina</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header th:replace="~{fragmentos :: cabecera}"></header>
+
+<main>
+    <h1>Clientes</h1>
+    <p>Listado interno con saldos y referencia de tarjeta de cada cliente.</p>
+
+    <!-- Recorre la lista "clientes" enviada por PortalControlador -->
+    <table>
+        <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Tarjeta</th>
+            <th>Saldo</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="c : ${clientes}">
+            <td th:text="${c.nombre}">Nombre</td>
+            <td th:text="${c.correo}">correo</td>
+            <!-- Nunca se muestra el número completo, solo los últimos cuatro -->
+            <td th:text="'**** **** **** ' + ${c.ultimosCuatroDigitos}">**** **** **** 0000</td>
+            <td th:text="${#numbers.formatDecimal(c.saldo, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+
+<footer th:replace="~{fragmentos :: pie}"></footer>
+
+</body>
+</html>
