@@ -69,8 +69,23 @@ demostrado con curl) · 12 auditoría de eventos · 13 endurecimiento ·
 ## Estado actual
 
 - Hechos: README raíz, `aplicacion_base`, `keycloak/docker-compose.yml`,
-  labs 00, 03, 04, 05, 06, 07 y 08 completos.
-- Pendientes: labs 01, 02, 09 a 14.
+  labs 00, 03, 04, 05, 06, 07, 08 y 09 completos.
+- Pendientes: labs 01, 02, 10 a 14.
+- Lab 09 (2026-09-12): segundo factor TOTP. OTP Policy en valores por defecto
+  (TOTP, SHA1, 6 dígitos, periodo 30, ventana 1). A `ana` se le asigna la
+  acción requerida CONFIGURE_TOTP; `luis` queda de un factor por contraste.
+  No se modifica el flujo Browser: el sub-flujo condicional "Browser -
+  Conditional 2FA" ya pide OTP solo si el usuario tiene credencial OTP. La
+  app NO cambia: `aplicacion_base_lab-09` es copia del lab 08.
+  El `curso-realm.json` NO lleva ningún secreto TOTP (sería repartir el 2.º
+  factor); deja a `ana` con CONFIGURE_TOTP para que cada alumno enrole su
+  propio autenticador. Verificado con curl+python (cálculo TOTP sobre los
+  bytes ASCII del campo `totpSecret`): enrolamiento crea credencial otp,
+  login exige contraseña+código, el código correcto entra. Notas para probar
+  a mano: (1) el token admin caduca a 60 s por accessTokenLifespan del lab 05,
+  refréscalo por llamada en scripts largos; (2) los fallos de OTP cuentan para
+  la fuerza bruta del lab 08, limpiar con DELETE attack-detection; (3) reusable
+  code está OFF: no reutilizar un código dentro de su ventana de 30 s.
 - Lab 08 (2026-09-12): password policy
   `length(12) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1)
   and notUsername(undefined) and notEmail(undefined) and passwordHistory(3)`;
