@@ -65,8 +65,18 @@ demostrado con curl) · 12 auditoría de eventos · 13 endurecimiento ·
 ## Estado actual
 
 - Hechos: README raíz, `aplicacion_base`, `keycloak/docker-compose.yml`,
-  labs 00, 03, 04, 05 y 06 completos.
-- Pendientes: labs 01, 02, 07 a 14.
+  labs 00, 03, 04, 05, 06 y 07 completos.
+- Pendientes: labs 01, 02, 08 a 14.
+- Lab 07 (2026-09-11): en el cliente `aplicacion-base`, Full scope allowed
+  OFF con scope mapping solo de `gestor-clientes`, y `email` de Default a
+  Optional; en la app solo cambia `scope: openid, profile`. Efecto: ID Token
+  con un rol y sin email, access token sin `aud: account` ni
+  `resource_access.account` (Audience resolve deja de actuar al no haber
+  roles de cliente). No se añade mapper Audience: la audiencia de la API se
+  fija en el lab 11. JSON = lab 06 + `fullScopeAllowed`, scopes del cliente
+  y `scopeMappings`; validado en contenedor temporal. El README del lab 07
+  añade en la sección 1 "Beneficios" y "Un ejemplo de las amenazas que evita"
+  (petición del autor; mantener en labs siguientes).
 - Lab 06 (2026-09-11): rol de realm `gestor-clientes`, grupo `operaciones`,
   usuario `luis`/`luis123` sin rol, mapper "realm roles" con Add to ID token;
   en la app `GrantedAuthoritiesMapper` (realm_access.roles -> ROLE_*),
