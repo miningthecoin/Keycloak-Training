@@ -65,8 +65,17 @@ demostrado con curl) · 12 auditoría de eventos · 13 endurecimiento ·
 ## Estado actual
 
 - Hechos: README raíz, `aplicacion_base`, `keycloak/docker-compose.yml`,
-  labs 00, 03, 04 y 05 completos.
-- Pendientes: labs 01, 02, 06 a 14.
+  labs 00, 03, 04, 05 y 06 completos.
+- Pendientes: labs 01, 02, 07 a 14.
+- Lab 06 (2026-09-11): rol de realm `gestor-clientes`, grupo `operaciones`,
+  usuario `luis`/`luis123` sin rol, mapper "realm roles" con Add to ID token;
+  en la app `GrantedAuthoritiesMapper` (realm_access.roles -> ROLE_*),
+  `hasRole("gestor-clientes")` en /privada, página /denegado (403) y roles en
+  la cabecera. El `curso-realm.json` del lab 06 incluye TODOS los client
+  scopes por defecto y los defaultDefault/OptionalClientScopes: si un JSON
+  lleva `clientScopes`, Keycloak ya no crea los scopes por defecto al
+  importar (verificado en contenedor temporal). Los usuarios del JSON llevan
+  `realmRoles: ["default-roles-curso"]` para reproducir lo que ve el alumno.
 - Lab 05 (2026-09-10): RP-Initiated Logout con
   `OidcClientInitiatedLogoutSuccessHandler`, botón "Cerrar sesión" (POST
   /logout con CSRF), `server.servlet.session.timeout: 3m` alineado con SSO
