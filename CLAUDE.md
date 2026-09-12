@@ -24,7 +24,11 @@ Enlaza la sección oficial concreta en cada README de laboratorio.
   Nunca se escribe en `application.yml` ni se sube al repositorio.
 - Puertos: Keycloak 8080 (Docker, `start-dev`), aplicación 8081.
 - Keycloak se arranca con `keycloak/docker-compose.yml`. Realm del curso: `curso`.
-  Usuario de pruebas: `ana` / `ana123` (contraseña débil a propósito; lab 08 la endurece).
+  Usuario de pruebas: `ana` / `ana123` en los labs 03 a 07 (contraseña débil a
+  propósito). El lab 08 la endurece: desde ahí, `ana` / `Andina*Segura2026`.
+  Segundo usuario (creado en el lab 06): `luis` / `luis123`, que conserva la
+  contraseña débil a propósito para demostrar que la política no afecta a los
+  usuarios existentes y para el ejercicio de fuerza bruta.
   Cliente OIDC: `aplicacion-base`, confidencial, solo Standard flow, PKCE S256,
   redirect URI exacta `http://localhost:8081/login/oauth2/code/keycloak`.
 - Entorno de los alumnos: WSL2 con Ubuntu 24.04, repo clonado en `~/` (nunca en `/mnt/c`).
@@ -65,8 +69,27 @@ demostrado con curl) · 12 auditoría de eventos · 13 endurecimiento ·
 ## Estado actual
 
 - Hechos: README raíz, `aplicacion_base`, `keycloak/docker-compose.yml`,
-  labs 00, 03, 04, 05, 06 y 07 completos.
-- Pendientes: labs 01, 02, 08 a 14.
+  labs 00, 03, 04, 05, 06, 07 y 08 completos.
+- Pendientes: labs 01, 02, 09 a 14.
+- Lab 08 (2026-09-12): password policy
+  `length(12) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1)
+  and notUsername(undefined) and notEmail(undefined) and passwordHistory(3)`;
+  fuerza bruta en modo temporal (`bruteForceProtected`, failureFactor 5,
+  waitIncrement 60 s, maxFailureWait 300 s). `ana` pasa a `Andina*Segura2026`
+  vía required action UPDATE_PASSWORD; `luis` conserva `luis123` a propósito.
+  La aplicación NO cambia: `aplicacion_base_lab-08` es copia exacta del lab 07.
+  Verificado: la política solo actúa al establecer contraseñas (los existentes
+  siguen entrando), el bloqueo llega al 5.º fallo si los intentos se espacian
+  más de 1 s (con menos, salta antes la regla Quick login check y el contador
+  marca 2), y el mensaje es `Invalid username or password.` tanto para
+  contraseña mala como para cuenta bloqueada.
+- IMPORTANTE para los JSON de realm a partir del lab 08: si el archivo lleva
+  `passwordPolicy`, las credenciales NO pueden ir en claro. Keycloak valida los
+  `"value"` contra la política durante la importación y, como `luis123` no la
+  cumple, falla el realm entero con `invalidPasswordMinSpecialCharsMessage`.
+  El `curso-realm.json` del lab 08 lleva las credenciales hasheadas
+  (`secretData`/`credentialData`, Argon2), obtenidas con `kc.sh export` sobre un
+  contenedor temporal. Regenerarlas exportando, nunca escribiéndolas a mano.
 - Lab 07 (2026-09-11): en el cliente `aplicacion-base`, Full scope allowed
   OFF con scope mapping solo de `gestor-clientes`, y `email` de Default a
   Optional; en la app solo cambia `scope: openid, profile`. Efecto: ID Token
