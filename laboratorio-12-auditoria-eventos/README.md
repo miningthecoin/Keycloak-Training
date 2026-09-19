@@ -708,11 +708,38 @@ controlador.
 
 ### 6.3 Arrancar
 
+Con tu aplicación, la que acabas de modificar:
+
 ```bash
 cd ~/keycloak-curso/aplicacion_base
 export KEYCLOAK_CLIENT_SECRET='el-secreto-de-tu-cliente'
 mvn spring-boot:run
 ```
+
+**O con la copia de referencia de este laboratorio**, que ya trae
+`AuditoriaDeAcceso.java` y el bean de 6.2 escritos:
+
+```bash
+cd ~/keycloak-curso/laboratorio-12-auditoria-eventos/aplicacion_base_lab-12
+export KEYCLOAK_CLIENT_SECRET='el-secreto-de-tu-cliente'
+mvn spring-boot:run
+```
+
+> **Cuándo usar cada una.** Si has seguido los laboratorios escribiendo el
+> código en `aplicacion_base/`, arranca la tuya: el ejercicio es haberlo
+> escrito. Usa la copia de referencia si te incorporas ahora, si te quedaste
+> atrás en algún laboratorio anterior, o si quieres comparar tu resultado
+> con el esperado. Las dos hacen exactamente lo mismo y se conectan al mismo
+> cliente `aplicacion-base` del realm `curso`, así que **no las arranques a
+> la vez**: las dos quieren el puerto 8081.
+>
+> El secreto es el de **Clients → aplicacion-base → Credentials**. Si
+> restauraste el realm desde un punto de control, será
+> `secreto-lab04-cambialo-en-produccion`.
+>
+> Y ejecuta como tu usuario, **nunca con `sudo` ni como `root`**: el
+> repositorio de dependencias de Maven es por usuario (`~/.m2`) y como
+> `root` estarías usando uno vacío.
 
 ## 7. Ejercicio DESPUÉS: los mismos hechos, ahora con rastro
 
