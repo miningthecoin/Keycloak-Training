@@ -27,7 +27,17 @@ services:
     container_name: keycloak
     # start-dev: modo desarrollo. HTTP sin TLS, base de datos H2 embebida,
     # sin caché de temas. NUNCA para producción (laboratorio 13).
-    command: start-dev --import-realm
+    #
+    # LABORATORIO 12: el event listener "jboss-logging" escribe los eventos
+    # de ÉXITO (LOGIN, LOGOUT, CLIENT_LOGIN...) a nivel DEBUG y los de ERROR
+    # a nivel WARN, así que con la configuración por defecto en
+    # "docker compose logs" solo se ven los errores. La opción de abajo sube
+    # los de éxito a INFO, tal como documenta la guía de administración en
+    # "The logging event listener" (formato spi-<spi>--<provider>--<propiedad>
+    # de la guía "Configuring providers"). Cambiar esta línea exige recrear
+    # el contenedor: "docker compose up -d" (los datos del volumen se
+    # conservan; NO hace falta "down -v").
+    command: start-dev --import-realm --spi-events-listener--jboss-logging--success-level=info
     environment:
       # Usuario administrador temporal que se crea en el primer arranque.
       # Solo vale para laboratorio. En el lab 13 se explica cómo
