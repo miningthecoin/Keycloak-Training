@@ -32,6 +32,7 @@ keycloak-curso/
 ├── laboratorio-00-entorno/
 ├── laboratorio-01-fundamentos/     Solo teoría
 ├── laboratorio-02-estado-del-arte/ Solo teoría
+├── laboratorio-13-endurecimiento/  Opcional: solo README, sin realm ni aplicación
 ├── laboratorio-03-.../
 │   ├── README.md                  Guion completo del laboratorio
 │   ├── keycloak/                  Export del realm al terminar el laboratorio
@@ -56,8 +57,14 @@ keycloak-curso/
 | 10 | Inicio de sesión federado con GitHub | Práctico | Identity brokering, first-login flow, mappers | Otra base de credenciales que custodiar → delegación | A07 |
 | 11 | Máquina a máquina | Práctico | Service account, client credentials, validación con JWKS (curl) | Secreto estático compartido → tokens de corta vida | A02, A07; PCI 8.6 |
 | 12 | Auditoría de eventos | Práctico | Eventos de usuario y de administración | Sin rastro de accesos → registro consultable | A09; PCI 10 |
-| 13 | Endurecimiento | Práctico | HTTPS, redirect URIs estrictas, client policies OAuth 2.1, rotación de secreto | Configuración de laboratorio → lista para producción | A05; PCI 2, 4 |
-| 14 | Cierre: autorización fina y passkeys | Demostración | Authorization Services, WebAuthn | — | — |
+| 13 | Endurecimiento | **Opcional** | HTTPS, redirect URIs estrictas, client policies OAuth 2.1, rotación de secreto | Configuración de laboratorio → lista para producción | A05; PCI 2, 4 |
+| 14 | Cierre: passkeys, autorización fina y acceso temporal | Demostración | WebAuthn Passwordless y passkeys, Authorization Services, Admin REST API | — | A01, A07; ASVS V2.2, V2.8, V4.1; PCI 7.2, 8.4, 10.2.1.2 |
+
+> **El laboratorio 13 es opcional y no está desarrollado.** Reúne tareas de
+> plataforma, no de desarrollo seguro de aplicaciones, y casi ninguna toca
+> la aplicación Spring. Su carpeta contiene un resumen de una página con los
+> enlaces oficiales. **El laboratorio 14 parte directamente del punto de
+> control del laboratorio 12** y no supone ningún endurecimiento previo.
 
 ## Agenda de 16 horas (4 sesiones de 4 h)
 
@@ -66,7 +73,9 @@ keycloak-curso/
 | 1 | Lab 00 (0,5 h) · Lab 01 (1,5 h) · Lab 02 (1 h) · Lab 03 (1 h) | 4 |
 | 2 | Lab 04 (1,5 h) · Lab 05 (1 h) · Lab 06 (1,5 h) | 4 |
 | 3 | Lab 07 (1 h) · Lab 08 (1 h) · Lab 09 (1 h) · Lab 10 (1 h) | 4 |
-| 4 | Lab 11 (1 h) · Lab 12 (0,75 h) · Lab 13 (1,25 h) · Lab 14 (1 h) | 4 |
+| 4 | Lab 11 (1 h) · Lab 12 (1 h) · Lab 14 (1 h) · Repaso, dudas y cierre (1 h) | 4 |
+
+El laboratorio 13 queda como lectura opcional fuera de sesión.
 
 ## Decisiones de diseño
 

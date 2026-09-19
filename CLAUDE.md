@@ -63,14 +63,218 @@ Enlaza la sección oficial concreta en cada README de laboratorio.
 (cliente + PKCE) · 05 logout y sesiones · 06 RBAC · 07 client scopes, claims y
 audiencia · 08 políticas de contraseña y fuerza bruta · 09 2FA TOTP ·
 10 login federado con GitHub · 11 máquina a máquina (client credentials, solo
-demostrado con curl) · 12 auditoría de eventos · 13 endurecimiento ·
-14 cierre (Authorization Services, passkeys).
+demostrado con curl) · 12 auditoría de eventos · 13 endurecimiento (OPCIONAL,
+solo README) · 14 cierre en tres partes (passkeys, Authorization Services,
+acceso just-in-time), que continúa del 12, no del 13.
 
 ## Estado actual
 
 - Hechos: README raíz, `aplicacion_base`, `keycloak/docker-compose.yml`,
-  labs 00, 03, 04, 05, 06, 07, 08 y 09 completos.
-- Pendientes: labs 01, 02, 10 a 14.
+  labs 00, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12 y 14 completos.
+- Pendientes: labs 01 y 02.
+- Lab 13 (endurecimiento): **OPCIONAL, no desarrollado y no previsto**.
+  Solo tiene `README.md` de una página que explica por qué es opcional
+  (es trabajo de plataforma, no de desarrollo seguro), remite a la lámina
+  43 de la presentación y a
+  `server_admin/index.html#mitigating_security_threats`, y manda al lab 14.
+  NO tiene `keycloak/curso-realm.json` ni `aplicacion_base_lab-13`, a
+  propósito. **El lab 14 parte del punto de control del lab 12.**
+- Tarea aparte pendiente (acordada el 2026-09-16, después del lab 11): el
+  Keycloak en marcha del autor tiene `passwordAge(3)` en la password policy
+  mientras los JSON de los labs 08 a 12 llevan `passwordHistory(3)`. Se
+  corregirá en ambos sitios a `passwordHistory(4)` por PCI DSS 8.3.7.
+- Lab 14 (2026-09-18): cierre en tres partes, 60 min, demostración guiada.
+  Es la ÚNICA excepción a "una funcionalidad por laboratorio" y el README lo
+  justifica en la sección 1. La app NO cambia: `aplicacion_base_lab-14` es
+  copia exacta de `aplicacion_base_lab-12`.
+  PARTE A, passwordless: `webAuthnPolicyPasswordless*` con RP Entity Name
+  "Cooperativa Andina", RP ID vacío, ES256+RS256 (RS256 lo EXIGE la guía
+  para Windows Hello), attestation `none`, attachment `not specified`.
+  OJO: en 26.7.3 la opción viva es **`Discoverable Credential`**
+  (`webAuthnPolicyPasswordlessResidentKey`); `Require Discoverable
+  Credential` está DEPRECADA. Ambas ya venían en `required` por defecto en
+  la política passwordless, igual que User Verification.
+  **`passkeys` NO es preview: es feature soportada y ACTIVADA POR DEFECTO**
+  (tabla "Supported features" de keycloak.org/server/features). No hace
+  falta ninguna opción de arranque y `keycloak/docker-compose.yml` NO se
+  toca. Se activa por realm con `webAuthnPolicyPasswordlessPasskeysEnabled`
+  + `webAuthnPolicyPasswordlessMediation: conditional` (Realm settings →
+  Login → Enable Passkeys). Lo DEPRECADO es
+  `passkeys-conditional-ui-authenticator`.
+  Flujo `browser passwordless` (duplicado de `browser`, vinculado como
+  Browser flow del realm; el `browser` original queda intacto):
+  Cookie/Kerberos/IdP Redirector/Organization + `browser passwordless
+  forms` → Username Form (Required) → `Passwordless Or Two-factor`
+  (Required) → WebAuthn Passwordless Authenticator (Alternative) +
+  `Password And Two-factor` (Alternative) → Password Form (Required) +
+  `browser passwordless Browser - Conditional 2FA` (Conditional) →
+  Condition - user configured + Condition - credential + OTP Form +
+  Recovery Authentication Code Form (los dos últimos Alternative).
+  HECHOS VERIFICADOS: duplicar prefija los sub-flujos con el nombre del
+  flujo; la consola NO mueve sub-flujos de padre, así que el condicional de
+  2FA se BORRA y se RECONSTRUYE un nivel más abajo (hay que replicar su
+  config `{"credentials":"webauthn-passwordless"}`, leerla antes de
+  borrar); el flujo `browser` de 26.7.3 trae un sub-flujo `Organization`
+  que la copia arrastra y se deja tal cual. `Condition - credential` tiene
+  opción `included` (por defecto false = "true si NO se usó esa
+  credencial"), y por eso la passkey se salta el OTP legítimamente.
+  PARTE B, Authorization Services: **NO se activa en `aplicacion-base`**
+  (decisión del autor). Resource server = cliente nuevo `api-clientes`, sin
+  flujos, Authorization ON (esto fuerza Service accounts roles). Scope
+  `ver`; recursos `cartera-norte`/`cartera-sur`; políticas `es gestor`
+  (role, required) + `cartera norte`/`cartera sur` (regex `^norte$`/`^sur$`
+  sobre Target Claim `cartera`); permisos scope-based Unanimous.
+  `cartera` hay que DECLARARLO en Realm settings → User profile (los
+  unmanaged attributes están OFF por defecto) y necesita un mapper User
+  Attribute en `api-clientes-dedicated`, SOLO access token (id.token.claim
+  false) para no tocar el ID Token de ana.
+  TRAMPA IMPORTANTE, verificada: sin `gestor-clientes` en el scope mapping
+  de `api-clientes` (Full scope allowed OFF), Evaluate da DENY a ana con
+  `es gestor=DENY` — es la regla de la intersección del lab 07.
+  Resultados reales: ana PERMIT norte / DENY sur; luis DENY ambas; cambiar
+  solo el atributo invierte el resultado. Grant UMA con
+  `audience=api-clientes` + `permission=cartera-norte#ver` → 403
+  `{"error":"access_denied","error_description":"not_authorized"}` (NO
+  "request_denied" como el ejemplo de la guía). Para enseñar
+  `authorization.permissions` se hizo una concesión TEMPORAL a la service
+  account de `servicio-conciliacion` (rol + atributo + mapper + scope
+  mapping), y el revert dejó el token IDÉNTICO (comprobado con diff).
+  En 26.7.3 activar Authorization **NO crea** Default Resource/Policy/
+  Permission (verificado por las dos vías, create y update).
+  PARTE C, acceso just-in-time: cliente `aprobador-accesos` (confidencial,
+  solo service account) con `manage-users` de `realm-management` en la
+  service account **Y** en su scope mapping (Full scope allowed OFF); rol
+  `administrador-app` y grupo `administracion`. Endpoints verificados:
+  **PUT** y **DELETE** `/admin/realms/curso/users/{id}/groups/{groupId}`
+  (204 los dos; el POST que a veces se cita es INCORRECTO). Admin events
+  `CREATE`/`DELETE` sobre `GROUP_MEMBERSHIP` con `authDetails.clientId` =
+  `aprobador-accesos`. La cabecera `X-Ticket-Aprobacion` NO se guarda (la
+  `representation` es solo el grupo). Prueba negativa: el token de
+  `servicio-conciliacion` recibe 403.
+  ÚNICO cambio sobre `aplicacion-base` en todo el lab: añadir
+  `administrador-app` a su scope mapping, sin el cual el ID Token de luis
+  no lleva el rol. Verificado con ID Tokens reales: `realm_access: null` →
+  `{"roles":["administrador-app"]}` → `realm_access: null`.
+  JSON: partial-export + usuarios curados del lab 12. NO lleva las
+  credenciales webauthn/otp/recovery de ana (la passkey está ligada al
+  hardware del autor y no funcionaría en otro equipo), NO lleva el
+  `KeyProvider` (claves de firma) y lleva secretos didácticos
+  `secreto-api-clientes-lab14-...` y `secreto-aprobador-lab14-...`.
+  Validado por import en 8082 sin errores: los flujos de fábrica SE CREAN
+  igualmente pese a llevar `authenticationFlows`, Evaluate da el mismo
+  resultado y ana redirige a `required-action?execution=CONFIGURE_TOTP`.
+  PROBLEMA FRECUENTE documentado y diagnosticado en el código del tema
+  (`theme/base/login/resources/js/webauthnRegister.js`): tras un
+  `navigator.credentials.create()` correcto, `returnSuccess()` llama a
+  `window.prompt()` para la etiqueta, y el campo destino es `hidden` sin
+  alternativa visible. Si el navegador bloquea `prompt()` sale
+  "Passkey registration result is invalid. Error: prompt() is not
+  supported" y Keycloak descarta el registro. Cambiar de tema NO sirve
+  (`keycloak.v2` y `base` comparten el mismo JS). Solución: Edge/Chrome en
+  ventana NORMAL (la guía avisa de que algunas ventanas privadas bloquean
+  Windows Hello) y aceptar el diálogo.
+  AVISO SOBRE EL KEYCLOAK DEL AUTOR (2026-09-18): `ana` había perdido su
+  credencial OTP (solo tenía `password`), pese a que el JSON del lab 12 la
+  deja con `CONFIGURE_TOTP`. Se le reasignó la acción requerida y el autor
+  enroló TOTP, passkey (Windows Hello, AAGUID
+  `08987058-cadc-4b81-b6e1-30de50dcbe96`) y códigos de recuperación. Ahora
+  tiene password + webauthn-passwordless + otp + recovery-authn-codes.
+  La app NO tiene ruta `/perfil` (solo `/`, `/privada`, `/denegado`): para
+  inspeccionar el ID Token se usa Client scopes → Evaluate, como el lab 07.
+- Lab 12 (2026-09-17): auditoría de eventos. En el realm: `eventsEnabled`,
+  `eventsExpiration` 2592000 s (30 días, didáctico; el README explica que PCI
+  DSS 10.5.1 pide 12 meses con 3 disponibles y que la BD de Keycloak NO es el
+  almacén de largo plazo), `adminEventsEnabled` + `adminEventsDetailsEnabled`
+  (Include representation), listener `jboss-logging` (email NO: no hay SMTP).
+  Saved types: los 103 por defecto + `INTROSPECT_TOKEN_ERROR` añadido a mano
+  = 104. Los tipos que NO vienen por defecto son los de alta frecuencia
+  (introspect_token, refresh_token, user_info_request, client_info,
+  invalid_signature, pushed_authorization_request, identity_provider_response,
+  identity_provider_retrieve_token, register_node, unregister_node,
+  user_session_deleted); el README lo explica como criterio de diseño.
+  ÚNICO archivo compartido modificado: `keycloak/docker-compose.yml`, cuyo
+  `command` pasa a
+  `start-dev --import-realm --spi-events-listener--jboss-logging--success-level=info`
+  (la guía documenta esa opción en "The logging event listener"); exige
+  `docker compose up -d` para recrear el contenedor, NO `down -v`, y la config
+  de eventos sobrevive porque vive en el volumen. Verificado que tras recrear
+  el contenedor `events/config` sigue intacto.
+  App: `aplicacion_base_lab-12` = lab 11 + `seguridad/AuditoriaDeAcceso.java`
+  (@EventListener sobre AuthenticationSuccessEvent, LogoutSuccessEvent y
+  AuthorizationDeniedEvent; logger SLF4J "auditoria"; registra usuario, sub,
+  sid, azp y ruta; NUNCA tokens) + bean `AuthorizationEventPublisher`
+  (SpringAuthorizationEventPublisher) en `SeguridadConfig`, sin el cual Spring
+  deniega en silencio. OJO con `AuthorizationDeniedEvent.getObject()`: en
+  Spring Security 6.5 es un `HttpServletRequest` (no un
+  `RequestAuthorizationContext`), por eso el método `ruta()` contempla los dos;
+  con solo el segundo se imprime el toString del wrapper.
+  Hechos verificados en 26.7.3: el listener recibe TODOS los eventos aunque el
+  almacén solo guarde los Saved types (se ve `USER_INFO_REQUEST` en el log y
+  no en Events); `LOGIN_ERROR` no trae `sessionId` (no hubo sesión); la
+  representación de la regeneración de secreto sale ENMASCARADA
+  (`"value":"**********"`), la del rol trae el objeto entero; la
+  representación es el estado NUEVO, Keycloak no guarda diff; la propia
+  activación de la auditoría queda como primer admin event
+  (UPDATE REALM events/config).
+  Correlación demostrada: el `sid` del ID Token que escribe la app es el mismo
+  `sessionId` de los eventos LOGIN/LOGOUT/CODE_TO_TOKEN de Keycloak.
+  Verificación mía: el autor hizo en el navegador los pasos de `ana` (TOTP del
+  lab 09, no automatizable) y `luis`; el resto por curl. El login de `luis`
+  para capturar la línea DENEGADO se automatizó con curl paso a paso (GET
+  /privada -> GET /oauth2/authorization/keycloak -> form de Keycloak -> POST
+  credenciales -> GET callback -> GET /privada 403), no con `curl -L`, que
+  pierde la petición de autorización de la sesión.
+  JSON validado por import en 8082 con la misma opción del listener: config
+  intacta y un LOGIN_ERROR + LOGIN guardados tras importar.
+- Lab 11 (2026-09-16): máquina a máquina con Client Credentials, demostrado
+  solo con curl. Cliente `servicio-conciliacion` (confidencial, Standard
+  flow OFF, Direct access grants OFF, Service accounts roles ON, Full scope
+  allowed OFF con scope mapping de `lector-conciliacion`); rol de realm
+  `lector-conciliacion` asignado SOLO a la service account
+  (`service-account-servicio-conciliacion`, que NO aparece en la lista de
+  Users de la consola: se llega desde la pestaña Service accounts roles);
+  client scope `api-conciliacion-audiencia` con mapper Audience, Default
+  solo en `servicio-conciliacion`. `aplicacion-base` no se toca. Además,
+  cliente `api-conciliacion` sin ningún flujo (confidencial) que representa
+  al resource server, siguiendo "Hardcoded audience" de la guía; el mapper
+  usa Included Client Audience = api-conciliacion. Hizo falta porque la
+  introspección (`/token/introspect`) exige que el cliente que pregunta esté
+  en el `aud` del token (sección "Token introspection audience validation"):
+  como `servicio-conciliacion` devolvía siempre `active: false` con
+  `reason="Client 'servicio-conciliacion' is not in the token audience"` en
+  el log. La app NO cambia: `aplicacion_base_lab-11` es copia del lab 10.
+  Scripts: `scripts/validar-token.sh` (resource server didáctico: descarga
+  el JWKS y comprueba kid, iss, aud, exp, typ, azp, scope y realm_access;
+  NO verifica la firma, y el README 7.8 demuestra la consecuencia con un
+  payload manipulado que el script acepta y la introspección rechaza con
+  "Access token JWT check failed"), `scripts/api-insegura.sh` +
+  `scripts/conciliacion.properties` (el ANTES: API key estática ficticia).
+  Hechos verificados en 26.7.3: token de 60 s sin refresh token; secreto
+  erróneo con client_id existente -> `unauthorized_client` "Invalid client
+  or Invalid client credentials" (HTTP 401); `invalid_client` solo si el
+  client_id no existe; client_credentials contra `aplicacion-base` ->
+  `unauthorized_client` "Client not enabled to retrieve service account";
+  Regenerate invalida el secreto anterior al instante. El JSON lleva los
+  secretos `secreto-lab11-cambialo-en-produccion` y
+  `secreto-api-lab11-cambialo-en-produccion`, y la service account como
+  usuario con `serviceAccountClientId` y `realmRoles`; validado por import
+  en 8082 (grant + script + introspección OK). En el Keycloak del autor el
+  secreto de `servicio-conciliacion` es el regenerado en la prueba 7.7
+  (léelo en Credentials).
+- Lab 10 (2026-09-12): login federado con GitHub (identity brokering).
+  Proveedor `github` en el realm; el botón "Sign in with GitHub" aparece en la
+  pantalla de login y redirige a github.com/login/oauth/authorize con el
+  redirect_uri del broker `.../realms/curso/broker/github/endpoint`. First
+  broker login por defecto (Review Profile, Create User If Unique). La app NO
+  cambia: `aplicacion_base_lab-10` es copia del lab 09. El usuario federado se
+  crea SIN rol -> recibe /denegado hasta que un admin le da `gestor-clientes`
+  (federar autentica, no autoriza). El `curso-realm.json` lleva el IdP con
+  clientId/clientSecret = marcadores TU_GITHUB_CLIENT_ID/TU_GITHUB_CLIENT_SECRET;
+  NUNCA el secreto real de GitHub. Verificación mía: solo el cableado Keycloak
+  (botón + redirección + import en 8082). El login real de GitHub lo hace el
+  alumno con su propia OAuth App; no automatizable con curl. En tu Keycloak
+  queda el IdP `github` creado con marcadores: pon tu Client ID/Secret para el
+  QA.
 - Lab 09 (2026-09-12): segundo factor TOTP. OTP Policy en valores por defecto
   (TOTP, SHA1, 6 dígitos, periodo 30, ventana 1). A `ana` se le asigna la
   acción requerida CONFIGURE_TOTP; `luis` queda de un factor por contraste.
