@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--
+  LABORATORIO 06: página de ACCESO DENEGADO.
+
+  La muestra Spring Security (exceptionHandling().accessDeniedPage) cuando
+  un usuario autenticado pide una ruta para la que no tiene el rol
+  necesario. La respuesta lleva estado HTTP 403. No confundir con el caso
+  del visitante anónimo, que no llega aquí: a él se le redirige al login.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Acceso denegado · Cooperativa Andina</title>
+    <link rel="stylesheet" th:href="@{/estilos.css}">
+</head>
+<body>
+
+<header th:replace="~{fragmentos :: cabecera}"></header>
+
+<main>
+    <h1>Acceso denegado</h1>
+    <p>
+        Has iniciado sesión como <strong th:text="${usuario}">usuario</strong>,
+        pero tu cuenta no tiene el rol necesario para ver esta sección.
+    </p>
+    <p>
+        La sección de clientes está reservada al rol
+        <code>gestor-clientes</code>. Si crees que deberías tener acceso,
+        pide a un administrador que te añada al grupo correspondiente.
+    </p>
+    <p><a th:href="@{/}">Volver a la portada</a></p>
+</main>
+
+<footer th:replace="~{fragmentos :: pie}"></footer>
+
+</body>
+</html>
