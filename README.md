@@ -22,6 +22,52 @@ oficial: <https://www.keycloak.org/guides> y
    `aplicacion_base_lab-XX/` con todo lo implementado hasta ese punto
    (y nada de los laboratorios posteriores).
 
+## Reanudar el curso en cualquier laboratorio
+
+Si llegas nuevo, vuelves tras unos días, o tu realm se ha quedado a medias,
+puedes situarte en el punto exacto de partida de cualquier laboratorio `N`
+restaurando el **punto de control del laboratorio anterior**.
+
+```bash
+# 1. Traer la última versión (no toca tu carpeta aplicacion_base/)
+cd ~/keycloak-curso && git pull
+
+# 2. Restaurar el realm al estado del laboratorio N-1
+cp laboratorio-<N-1>-*/keycloak/curso-realm.json keycloak/import/
+cd keycloak
+docker compose down -v        # imprescindible: ver el aviso de abajo
+docker compose up -d
+
+# 3. Comprobar que la importación ocurrió
+docker compose logs | grep "Realm 'curso'"
+#   "Realm 'curso' imported"                       -> correcto
+#   "Realm 'curso' already exists. Import skipped" -> faltó la -v, repite el paso 2
+
+# 4. Arrancar la aplicación del laboratorio N
+cd ~/keycloak-curso/laboratorio-<N>-*/aplicacion_base_lab-<N>
+export KEYCLOAK_CLIENT_SECRET='secreto-lab04-cambialo-en-produccion'
+mvn spring-boot:run
+```
+
+> **Por qué la `-v` es obligatoria.** La opción `--import-realm` de Keycloak
+> usa la estrategia `IGNORE_EXISTING`: **si el realm ya existe, ignora el
+> archivo**, y aun así escribe `Import finished successfully` en el log.
+> `docker compose down -v` borra el volumen, que es lo que permite que la
+> importación ocurra de verdad. A cambio pierdes el realm anterior y el
+> historial de eventos.
+
+Tres consecuencias de restaurar, todas esperadas:
+
+- El secreto de `aplicacion-base` pasa a ser el del archivo,
+  `secreto-lab04-cambialo-en-produccion`.
+- `ana` vuelve a tener pendiente registrar su autenticador OTP (y, a partir
+  del laboratorio 14, también su passkey): los segundos factores nunca se
+  reparten en un archivo.
+- La pantalla **Events** queda vacía hasta el laboratorio 12, que es donde
+  se activa la auditoría.
+
+Los laboratorios 01, 02 y 13 son de lectura y no tienen punto de control.
+
 ## Estructura del repositorio
 
 ```

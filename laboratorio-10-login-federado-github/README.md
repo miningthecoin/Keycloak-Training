@@ -178,6 +178,99 @@ funciona igual.
 
 ## 4. Ejercicio ANTES: toda identidad vive en el realm
 
+### 4.0 Preparar el entorno (empieces donde empieces)
+
+> **Lee esto aunque vengas del laboratorio 09 sin apagar la máquina.** Si
+> llevas Keycloak y la aplicación en marcha y tu realm está sano, salta a
+> 4.1. En cualquier otro caso —máquina recién encendida, realm a medias, o
+> te incorporas ahora al curso— sigue los cuatro pasos.
+
+Este laboratorio parte del **punto de control del laboratorio 09**: realm
+`curso` con el cliente OIDC y PKCE (04), cierre de sesión y tiempos (05),
+rol `gestor-clientes` y grupo `operaciones` (06), scopes mínimos (07),
+política de contraseñas y fuerza bruta (08), y la *OTP Policy* con `ana`
+pendiente de registrar su autenticador (09).
+
+**Paso 1. Traer los laboratorios nuevos.**
+
+```bash
+cd ~/keycloak-curso
+git pull
+```
+
+Es seguro: los laboratorios 10 a 14 **no modifican `aplicacion_base/`**, así
+que lo que hayas escrito ahí durante el curso se queda intacto.
+
+**Paso 2. Restaurar Keycloak al estado del laboratorio 09.**
+
+```bash
+cd ~/keycloak-curso
+cp laboratorio-09-2fa-totp/keycloak/curso-realm.json keycloak/import/
+cd keycloak
+docker compose down -v
+docker compose up -d
+```
+
+> ### ⚠ La `-v` no es opcional
+>
+> `--import-realm` **solo importa si el realm no existe**. Keycloak lo dice
+> en su log: `Strategy: IGNORE_EXISTING`. Si tu volumen ya tiene un realm
+> `curso` —y lo tiene, si hiciste los laboratorios 03 a 09—, copiar el JSON
+> y hacer `docker compose up -d` **no cambia absolutamente nada**, y encima
+> el log acaba diciendo `Import finished successfully`.
+>
+> `docker compose down -v` **borra el volumen**, que es lo que permite que
+> la importación ocurra. Perderás el realm que tuvieras y el historial de
+> eventos. Es lo que queremos: partir todos del mismo sitio.
+
+**Paso 3. Comprobar que la importación ocurrió de verdad.**
+
+```bash
+docker compose logs | grep "Realm 'curso'"
+```
+
+Solo hay dos resultados posibles:
+
+```
+Realm 'curso' imported                          <-- bien, sigue
+Realm 'curso' already exists. Import skipped    <-- te faltó la -v, repite el paso 2
+```
+
+**Paso 4. Arrancar la aplicación.**
+
+```bash
+cd ~/keycloak-curso/laboratorio-10-login-federado-github/aplicacion_base_lab-10
+export KEYCLOAK_CLIENT_SECRET='secreto-lab04-cambialo-en-produccion'
+mvn spring-boot:run
+```
+
+> **El secreto ha cambiado.** Al restaurar el realm, el de `aplicacion-base`
+> pasa a ser el del archivo: `secreto-lab04-cambialo-en-produccion`. El que
+> usabas antes ya no vale. Puedes confirmarlo en **Clients →
+> aplicacion-base → Credentials**.
+>
+> **Ejecuta como tu usuario, nunca con `sudo` ni como `root`**: el
+> repositorio de Maven es por usuario (`~/.m2`) y como `root` estarías
+> usando uno vacío.
+
+Deja la aplicación corriendo en esa terminal y comprueba desde otra:
+
+```bash
+curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" http://localhost:8081/privada
+# esperado: 302 http://localhost:8081/oauth2/authorization/keycloak
+```
+
+**Qué vas a notar del reinicio**, y es normal:
+
+- **`ana` vuelve a ver el código QR** la primera vez que entre. El punto de
+  control la deja con la acción requerida *Configure OTP* a propósito, para
+  que cada persona registre su propio autenticador (laboratorio 09, 9).
+- **`luis` entra con `luis123`**, sin segundo factor, como siempre.
+- **El historial de Events está vacío.** No importa: los eventos se activan
+  en el laboratorio 12.
+
+### 4.1 Toda identidad vive en el realm
+
 **Propósito.** Ver que, sin federación, la única forma de entrar es con un
 usuario que exista y tenga contraseña dentro del realm `curso`.
 
@@ -307,6 +400,43 @@ Hasta que no lo haga, el botón de GitHub aparecerá pero la autenticación
 fallará, porque `TU_GITHUB_CLIENT_ID` no es una app real.
 
 ## 10. Problemas frecuentes
+
+### Al preparar el entorno (4.0)
+
+**El log dice `Realm 'curso' already exists. Import skipped`**
+Hiciste `docker compose up -d` sin borrar el volumen. `--import-realm` usa
+la estrategia `IGNORE_EXISTING`: si el realm existe, **ignora el archivo**.
+Repite el paso 2 de 4.0 **con la `-v`**:
+
+```bash
+cd ~/keycloak-curso/keycloak
+docker compose down -v && docker compose up -d
+docker compose logs | grep "Realm 'curso'"
+```
+
+**La aplicación arranca pero el login falla con `invalid_client_credentials`**
+El `KEYCLOAK_CLIENT_SECRET` que exportaste es el de antes de restaurar el
+realm. Tras la importación es `secreto-lab04-cambialo-en-produccion`
+(4.0, paso 4). Compruébalo en **Clients → aplicacion-base → Credentials**.
+
+**`mvn spring-boot:run` falla con `Could not resolve host`**
+Dos causas. La primera es la habitual: **estás como `root` o con `sudo`**, y
+el repositorio de Maven es por usuario (`~/.m2`); sal de esa sesión y
+repite. La segunda es que no tengas DNS: si ya descargaste las dependencias
+alguna vez, `mvn -o spring-boot:run` trabaja solo con la caché.
+
+**`docker compose up -d` dice que el nombre `keycloak` ya está en uso**
+Tienes un contenedor de otra copia del repositorio. El compose fija
+`container_name: keycloak`, así que solo puede haber uno. Párala desde la
+carpeta antigua con `docker compose down -v`, o elimínalo con
+`docker rm -f keycloak`.
+
+**`ana` me pide registrar el autenticador otra vez**
+Es lo esperado tras restaurar: el punto de control la deja con la acción
+requerida *Configure OTP* para que cada persona enrole su propio
+dispositivo. No se reparten segundos factores en un archivo.
+
+### Con el proveedor de GitHub
 
 **GitHub responde "The redirect_uri MUST match the registered callback URL"**
 La *Authorization callback URL* de la OAuth App no coincide exactamente con
